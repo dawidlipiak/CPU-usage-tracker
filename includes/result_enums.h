@@ -6,6 +6,6 @@ typedef enum {
     SUCCESS,
     NULL_TARGET_ERROR,
     ALLOCATION_ERROR
-} Result_return;
+} Result_enum;
 
 #endif 

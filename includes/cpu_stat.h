@@ -15,4 +15,12 @@ typedef struct CpuStatistics {
   uint32_t steal;
 } CpuStatistics;
 
+
+// Data for processor structure
+typedef struct ProcStatistics {
+    uint8_t CPUs_number;
+    CpuStatistics total;
+    CpuStatistics* CPUs;
+} ProcStatistics;
+
 #endif 

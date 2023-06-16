@@ -38,7 +38,7 @@ Reader* reader_create(register const size_t read_interval) {
 }
 
 
-Result_return reader_read_latest_statistics(Reader* const reader, ProcStatistics* statistics) {
+Result_enum reader_read_latest_statistics(Reader* const reader, ProcStatistics* statistics) {
   if(reader == NULL){ return NULL_TARGET_ERROR; }
 
   if(statistics == NULL){ return NULL_TARGET_ERROR; }
