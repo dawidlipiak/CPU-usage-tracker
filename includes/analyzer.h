@@ -1,4 +1,4 @@
-#ifndef ANALYZER_H
+#ifndef ANALYZER_Hanalyzer
 #define ANALYZER_H
 
 #include "cpu_stat.h"
@@ -17,15 +17,15 @@ Analyzer* analyzer_create();
 
 
 
-/** Analyze statistics
+/** Analyse statistics
  * 
  * arguments:   analyzer - pointer to Analyzer object
- *              row_statistics - pointer to row statistics structure
- *              analysed_statistics - pointer to analysed statistics structure
+ *              row_stats - pointer to row stats structure
+ *              analysed_stats - pointer to analysed statistics structure
  * 
  * return: Operation result
 */
-Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_statistics, AnalysedProcStats* analysed_statistics);
+Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_stats, AnalysedProcStats* analysed_stats);
 
 
 /** Analyzer destroyer

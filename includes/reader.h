@@ -22,11 +22,11 @@ Reader* reader_create(size_t read_interval);
 /** Read statistics
  * 
  * arguments: reader - pointer to Reader object
- *            statistics - pointer to ProcStatistics
+ *            stats - pointer to ProcStatistics
  * 
  * return: operation result
 */
-Result_enum reader_read_latest_statistics(Reader* reader, ProcStatistics* statistics);
+Result_enum reader_read_latest_statistics(Reader* reader, ProcStatistics* stats);
 
 
 
