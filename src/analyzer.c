@@ -15,11 +15,13 @@ typedef struct Analyzer {
 static float single_analyse(CpuStatistics* stats, uint64_t* total_prev, uint64_t* idle_prev);
 
 
-Analyzer* analyzer_new() {
+Analyzer* analyzer_create() {
     Analyzer* analyzer = malloc(sizeof(*analyzer));
     if(analyzer == NULL) { return NULL; }
 
     analyzer->prev_initialized = false;
+    analyzer->CPUs_total_prev = NULL;
+    analyzer->CPUs_idle_prev = NULL;
 
     return analyzer;
 }
@@ -41,24 +43,16 @@ static float single_analyse(CpuStatistics* stats, uint64_t* total_prev, uint64_t
 }
 
 Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_stats, AnalysedProcStats* analysed_stats) {
-  if(analyzer == NULL)
-    return NULL_TARGET_ERROR;
+  if(analyzer == NULL) return NULL_TARGET_ERROR;
     
-  if(analyzer->CPUs_total_prev == NULL)
-    return NULL_TARGET_ERROR;
+  if(row_stats == NULL) return NULL_TARGET_ERROR;
 
-  if(analyzer->CPUs_idle_prev == NULL)
-    return NULL_TARGET_ERROR;
-  
-  if(row_stats == NULL)
-    return NULL_TARGET_ERROR;
+  if(analysed_stats == NULL) return NULL_TARGET_ERROR;
 
-  if(analysed_stats == NULL)
-    return NULL_TARGET_ERROR;
 
   if(!analyzer->prev_initialized) {
     analyzer->CPUs_total_prev = malloc(sizeof(uint64_t) * row_stats->CPUs_number);
-    if(analyzer->CPUs_total_prev == NULL) { return ALLOCATION_ERROR; }
+    if(analyzer->CPUs_total_prev == NULL) return ALLOCATION_ERROR; 
     
     analyzer->CPUs_idle_prev = malloc(sizeof(uint64_t) * row_stats->CPUs_number);
     if(analyzer->CPUs_idle_prev == NULL) {
@@ -73,20 +67,30 @@ Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_stats
     analyzer->proc_total_prev = idle + non_idle;
     analyzer->proc_idle_prev = idle;
 
-    for(uint8_t i = 0; i < row_stats->CPUs_number; i++) {
+    for(uint64_t i = 0; i < row_stats->CPUs_number; i++) {
         idle = row_stats->CPUs[i].idle + row_stats->CPUs[i].iowait;
         non_idle = row_stats->CPUs[i].user + row_stats->CPUs[i].nice + row_stats->CPUs[i].system + row_stats->CPUs[i].irq +row_stats->CPUs[i].sortirq + row_stats->CPUs[i].steal;
     
         analyzer->CPUs_total_prev[i] = idle + non_idle;
         analyzer->CPUs_idle_prev[i] = idle;
     }
+
+    analyzer->prev_initialized = true;
+
+    analysed_stats->CPUs = NULL;
+    analysed_stats->CPUs_number = row_stats->CPUs_number;
+
+    return INITIALISATION_SUCCESS;
   }
+
+  analysed_stats->CPUs = malloc(sizeof(float) * row_stats->CPUs_number);
+  if(analysed_stats->CPUs == NULL)return ALLOCATION_ERROR;
 
   analysed_stats->CPUs_number = row_stats->CPUs_number;
   analysed_stats->total = single_analyse(&row_stats->total, &analyzer->proc_total_prev, &analyzer->proc_idle_prev);
   
   for(uint8_t i = 0; i < row_stats->CPUs_number; i++) {
-    analysed_stats->CPUs[i] = single_analyse(&row_stats->CPUs[i], &analyzer->CPUs_total_prev[i], &analyzer->CPUs_idle_prev[i]);
+    analysed_stats->CPUs[i] = single_analyse(&(row_stats->CPUs[i]), &(analyzer->CPUs_total_prev[i]), &(analyzer->CPUs_idle_prev[i]));
   }
 
   return SUCCESS;

@@ -13,10 +13,10 @@ void test_buffer(void) {
 }
 
 static void test_lifecycle(void) {
-    enum { buffer_capacity = 1024 };
+    enum { buffer_max_size = 1024 };
     Buffer* buffer;
 
-    buffer = buffer_new(0, buffer_capacity);
+    buffer = buffer_new(0, buffer_max_size);
     assert(buffer == NULL);
     printf("Zero Data Size Test Passed!\n");
 
@@ -24,7 +24,7 @@ static void test_lifecycle(void) {
     assert(buffer == NULL);
     printf("Zero Buffer Size Test Passed!\n");
 
-    buffer = buffer_new(sizeof(int), buffer_capacity);
+    buffer = buffer_new(sizeof(int), buffer_max_size);
     assert(buffer != NULL);
     printf("Create Buffer Test Passed!\n");
 
@@ -32,10 +32,10 @@ static void test_lifecycle(void) {
 }
 
 static void test_operations(void) {
-    enum { buffer_capacity = 3 };
+    enum { buffer_max_size = 3 };
     enum { timeout = 1 };
 
-    Buffer* buffer = buffer_new(sizeof(int), buffer_capacity);
+    Buffer* buffer = buffer_new(sizeof(int), buffer_max_size);
     assert(buffer != NULL);
     assert(buffer_is_empty(buffer) == true);
     assert(buffer_is_full(buffer) == false);

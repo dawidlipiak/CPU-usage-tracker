@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+// Analyzed processor statistic object structure
 typedef struct AnalysedProcStats {
     uint8_t CPUs_number;
     float total;

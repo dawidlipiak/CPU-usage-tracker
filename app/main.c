@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include "../includes/tracker.h"
 
 int main(void) {
-
-    return 0;
+  tracker_run();
+  return 0;
 }

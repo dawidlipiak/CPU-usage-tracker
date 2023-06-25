@@ -6,7 +6,8 @@ typedef enum {
     SUCCESS,
     NULL_TARGET_ERROR,
     ALLOCATION_ERROR,
-    TIMEOUT_ERROR
+    TIMEOUT_ERROR,
+    INITIALISATION_SUCCESS
 } Result_enum;
 
 #endif 

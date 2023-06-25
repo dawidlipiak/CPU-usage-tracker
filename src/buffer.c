@@ -19,7 +19,7 @@ typedef struct Buffer {
 } Buffer;
 
 
-Buffer* buffer_new(size_t data_size, size_t buffer_max_size) {
+Buffer* buffer_create(size_t data_size, size_t buffer_max_size) {
     if(data_size == 0) return NULL;
 
     if(buffer_max_size == 0) return NULL;

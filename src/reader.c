@@ -1,57 +1,52 @@
 #include <stdio.h>      
 #include <stdlib.h>     
 #include <sys/stat.h>   
-#include <stdbool.h>    
+#include <stdbool.h>   
 #include "string.h"     
 
-// Inside libraries includes
 #include "../includes/reader.h"
 
 
-static const char* STATISTICS_FILE_PATH = "/proc/stat";
-
 typedef struct Reader {
-  size_t read_interval;
   FILE* file;
 } Reader;
 
 
-Reader* reader_create(register const size_t read_interval) {
-  if(read_interval == 0) return NULL;
+Reader* reader_create(char* file_path) {
+  if(file_path == NULL) return NULL;
 
   Reader* reader = malloc(sizeof(*reader));
-
   if(reader == NULL) return NULL;
 
-  FILE* file = fopen(STATISTICS_FILE_PATH, "r");
+  FILE* file = fopen(file_path, "r");
   if(file == NULL) {
     free(reader);
     return NULL;
   }
 
-  *reader = (Reader){
+  *reader =(Reader){
     .file = file,
-    .read_interval = read_interval
   };
 
   return reader;
 }
 
+Result_enum reader_read_latest_stats(Reader* const reader, ProcStatistics* stats) {
+  if(reader == NULL) return NULL_TARGET_ERROR;
 
-Result_enum reader_read_latest_statistics(Reader* const reader, ProcStatistics* statistics) {
-  if(reader == NULL){ return NULL_TARGET_ERROR; }
+  if(stats == NULL) return NULL_TARGET_ERROR;
 
-  if(statistics == NULL){ return NULL_TARGET_ERROR; }
-
-  bool data_read_successfully;
+  bool data_read_successfully = false;
   size_t buffer_size = 1024;
+  size_t chars_read;
 
   char* buffer = malloc(buffer_size);
-  if(buffer == NULL){ return ALLOCATION_ERROR; }
+  if(buffer == NULL) return ALLOCATION_ERROR;
 
-  do {
-    fread(buffer, sizeof(char), buffer_size, reader->file);
-    data_read_successfully = ferror(reader->file) || !feof(reader->file);
+  while(!data_read_successfully) {
+    fseek(reader->file, 0, SEEK_SET);
+    chars_read = fread(buffer, sizeof(char), buffer_size, reader->file);
+    data_read_successfully = !ferror(reader->file) && feof(reader->file);
 
     if(!data_read_successfully) {
       free(buffer);
@@ -59,22 +54,24 @@ Result_enum reader_read_latest_statistics(Reader* const reader, ProcStatistics* 
       buffer_size *= 2;
       buffer = malloc(buffer_size);
 
-      if(buffer == NULL){ return ALLOCATION_ERROR;}
+      if(buffer == NULL) return ALLOCATION_ERROR;
     }
   }
-  while(!data_read_successfully);
+  buffer[chars_read] = '\0';
 
   uint8_t CPUs_number = 0;
   char* file_content = buffer;
   while((file_content = strstr(file_content, "cpu")) != NULL) {
     CPUs_number++;
-    file_content += 3;
+    file_content++;
   }
 
-  statistics->CPUs_number = CPUs_number;
-  statistics->CPUs = malloc(sizeof(CpuStatistics) * CPUs_number);
+  CPUs_number--;
+  
+  stats->CPUs_number = CPUs_number;
+  stats->CPUs = malloc(sizeof(CpuStatistics) * CPUs_number);
 
-  if(statistics->CPUs == NULL) {
+  if(stats->CPUs == NULL) {
     free(buffer);
     return ALLOCATION_ERROR;
   }
@@ -84,19 +81,17 @@ Result_enum reader_read_latest_statistics(Reader* const reader, ProcStatistics* 
   int trash;
   while (line != NULL){
       if(strstr(line, "cpu") != NULL) {
-          if(cpu_num == 0) { // first "cpu" occurrence is statistic for total
-              sscanf(line, "cpu %d %d %d %d %d %d %d %d", &(statistics->total.user), &(statistics->total.nice),
-                      &(statistics->total.system), &(statistics->total.idle), &(statistics->total.iowait),
-                      &(statistics->total.irq), &(statistics->total.sortirq), &(statistics->total.steal));
+          if(cpu_num == 0) { 
+              sscanf(line, "cpu %d %d %d %d %d %d %d %d", &(stats->total.user), &(stats->total.nice),
+                      &(stats->total.system), &(stats->total.idle), &(stats->total.iowait),
+                      &(stats->total.irq), &(stats->total.sortirq), &(stats->total.steal));
           }
-
-          else { // next "cpu" occurrences are statistic for single cpu
-              sscanf(line, "cpu%d %d %d %d %d %d %d %d %d", &trash, &(statistics->CPUs[cpu_num - 1].user), &(statistics->CPUs[cpu_num - 1].nice),
-                      &(statistics->CPUs[cpu_num - 1].system), &(statistics->CPUs[cpu_num - 1].idle), &(statistics->CPUs[cpu_num - 1].iowait),
-                      &(statistics->CPUs[cpu_num - 1].irq), &(statistics->CPUs[cpu_num - 1].sortirq), &(statistics->CPUs[cpu_num - 1].steal));
+          else { 
+              sscanf(line, "cpu%d %d %d %d %d %d %d %d %d", &trash, &(stats->CPUs[cpu_num - 1].user), &(stats->CPUs[cpu_num - 1].nice),
+                      &(stats->CPUs[cpu_num - 1].system), &(stats->CPUs[cpu_num - 1].idle), &(stats->CPUs[cpu_num - 1].iowait),
+                      &(stats->CPUs[cpu_num - 1].irq), &(stats->CPUs[cpu_num - 1].sortirq), &(stats->CPUs[cpu_num - 1].steal));
           }
-
-          if(cpu_num == CPUs_number) { 
+          if(cpu_num == CPUs_number) {
             break;
           }
 
@@ -115,7 +110,7 @@ Result_enum reader_read_latest_statistics(Reader* const reader, ProcStatistics* 
 }
 
 void reader_delete(Reader* const reader) {
-  if(reader == NULL) { return; }
+  if(reader == NULL) return;
 
   fclose(reader->file);
   free(reader);
