@@ -10,12 +10,13 @@ typedef struct Analyzer {
   uint64_t* CPUs_total_prev;
   uint64_t* CPUs_idle_prev;
   bool prev_initialized;
+  char padding[7];
 } Analyzer;
 
 static float single_analyse(CpuStatistics* stats, uint64_t* total_prev, uint64_t* idle_prev);
 
 
-Analyzer* analyzer_create() {
+Analyzer* analyzer_create(void) {
     Analyzer* analyzer = malloc(sizeof(*analyzer));
     if(analyzer == NULL) { return NULL; }
 
@@ -32,9 +33,9 @@ static float single_analyse(CpuStatistics* stats, uint64_t* total_prev, uint64_t
   uint64_t total = idle + non_idle - *total_prev;
   uint64_t idled = idle - *idle_prev;
 
-  float percentage = 0.0;
-  if(total != 0.0)
-    percentage = (float)(total - idled) / (float)total * 100.0;
+   float percentage = 0.0f;
+  if(total != 0)
+    percentage = (float)(total - idled) / (float)total * 100.0f;
 
   *total_prev = idle + non_idle;
   *idle_prev = idle;
@@ -43,6 +44,9 @@ static float single_analyse(CpuStatistics* stats, uint64_t* total_prev, uint64_t
 }
 
 Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_stats, AnalysedProcStats* analysed_stats) {
+  uint64_t idle;
+  uint64_t non_idle;
+
   if(analyzer == NULL) return NULL_TARGET_ERROR;
     
   if(row_stats == NULL) return NULL_TARGET_ERROR;
@@ -61,8 +65,8 @@ Result_enum analyzer_analyse_stats(Analyzer* analyzer, ProcStatistics* row_stats
       return ALLOCATION_ERROR;
     }
     
-    uint64_t idle = row_stats->total.idle + row_stats->total.iowait;
-    uint64_t non_idle = row_stats->total.user + row_stats->total.nice + row_stats->total.system + row_stats->total.irq + row_stats->total.sortirq + row_stats->total.steal;
+    idle = row_stats->total.idle + row_stats->total.iowait;
+    non_idle = row_stats->total.user + row_stats->total.nice + row_stats->total.system + row_stats->total.irq + row_stats->total.sortirq + row_stats->total.steal;
     
     analyzer->proc_total_prev = idle + non_idle;
     analyzer->proc_idle_prev = idle;

@@ -13,7 +13,7 @@ typedef struct Analyzer Analyzer;
  * 
  * return: pointer to created analyzer
 */
-Analyzer* analyzer_create();
+Analyzer* analyzer_create(void);
 
 
 

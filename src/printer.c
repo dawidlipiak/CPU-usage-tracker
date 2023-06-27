@@ -10,17 +10,17 @@ typedef struct Printer {
 static void visualise_cpu_usage(float percentage, const char* usage_bar_char);
 
 void visualise_cpu_usage(float percentage, const char* usage_bar_char) {
-    int progress = (int)(percentage / 10.0);
+    int progress = (int)(percentage / 10.0f);
     
     printf("[");
 
     for(int i = 0; i < progress; i++)
-        printf(usage_bar_char);
+        printf("%s", usage_bar_char);
 
     for(int i = progress; i < 10; i++)
         printf(" ");
 
-    printf("] %0.2f%%", percentage);
+    printf("] %0.2f%%", (double)percentage);
 }
 
 Printer* printer_create(char* progress_marker) {
@@ -39,7 +39,7 @@ void printer_print_proc_usage(Printer* printer, AnalysedProcStats* stats) {
 
     if(stats == NULL) return;
 
-    printf("\033[H\033[J");     // clear screen
+    printf("\033[H\033[J");     
     printf("///////  CPU Tracker  \\\\\\\\n");
 
     printf("total usage: ");

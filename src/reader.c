@@ -32,15 +32,21 @@ Reader* reader_create(char* file_path) {
 }
 
 Result_enum reader_read_latest_stats(Reader* const reader, ProcStatistics* stats) {
+  bool data_read_successfully = false;
+  size_t buffer_size = 1024;
+  size_t chars_read = 0;
+  char* buffer;
+  uint8_t CPUs_number = 0;
+  size_t cpu_num = 0;
+  char* file_content;
+  char* line;
+  int trash;
+
   if(reader == NULL) return NULL_TARGET_ERROR;
 
   if(stats == NULL) return NULL_TARGET_ERROR;
 
-  bool data_read_successfully = false;
-  size_t buffer_size = 1024;
-  size_t chars_read;
-
-  char* buffer = malloc(buffer_size);
+  buffer = malloc(buffer_size);
   if(buffer == NULL) return ALLOCATION_ERROR;
 
   while(!data_read_successfully) {
@@ -59,8 +65,7 @@ Result_enum reader_read_latest_stats(Reader* const reader, ProcStatistics* stats
   }
   buffer[chars_read] = '\0';
 
-  uint8_t CPUs_number = 0;
-  char* file_content = buffer;
+  file_content = buffer;
   while((file_content = strstr(file_content, "cpu")) != NULL) {
     CPUs_number++;
     file_content++;
@@ -76,9 +81,7 @@ Result_enum reader_read_latest_stats(Reader* const reader, ProcStatistics* stats
     return ALLOCATION_ERROR;
   }
 
-  char* line = strtok(buffer, "\n");
-  size_t cpu_num = 0;
-  int trash;
+  line = strtok(buffer, "\n");
   while (line != NULL){
       if(strstr(line, "cpu") != NULL) {
           if(cpu_num == 0) { 

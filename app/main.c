@@ -1,6 +1,6 @@
 #include "../includes/tracker.h"
 
 int main(void) {
-  tracker_run();
-  return 0;
+  int status = tracker_run();
+  return status;
 }

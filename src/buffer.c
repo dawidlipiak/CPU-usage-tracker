@@ -1,7 +1,8 @@
 #include <pthread.h>    
 #include <stdlib.h>     
 #include <string.h>     
-#include <time.h>       
+#include <time.h>      
+#include <sys/time.h> 
 
 // Inside libraries includes
 #include "../includes/buffer.h"
@@ -20,11 +21,13 @@ typedef struct Buffer {
 
 
 Buffer* buffer_create(size_t data_size, size_t buffer_max_size) {
+    Buffer* buffer;
+
     if(data_size == 0) return NULL;
 
     if(buffer_max_size == 0) return NULL;
 
-    Buffer* buffer = malloc(sizeof(*buffer) + (data_size * buffer_max_size));
+    buffer = malloc(sizeof(*buffer) + (data_size * buffer_max_size));
     if(buffer == NULL) return NULL;
 
     *buffer = (Buffer){.mutex = PTHREAD_MUTEX_INITIALIZER,
@@ -57,12 +60,17 @@ bool buffer_is_full(Buffer* buffer) {
 }
 
 Result_enum buffer_push(Buffer* buffer, void* element, uint8_t max_push_time) {
+    struct timeval now;
+    struct timespec timeout;
+    uint8_t* ptr;
+
     if(buffer == NULL) return NULL_TARGET_ERROR;
 
     if(element == NULL) return NULL_TARGET_ERROR;
 
-    struct timespec timeout;
-    timeout.tv_sec = max_push_time;
+    gettimeofday(&now, NULL);
+    timeout.tv_sec = now.tv_sec + max_push_time;
+    timeout.tv_nsec = now.tv_usec * 1000;
 
     pthread_mutex_lock(&buffer->mutex);
 
@@ -74,7 +82,7 @@ Result_enum buffer_push(Buffer* buffer, void* element, uint8_t max_push_time) {
         }
     }
 
-    uint8_t* const ptr = &buffer->buffer[buffer->head * buffer->element_size];
+    ptr = &buffer->buffer[buffer->head * buffer->element_size];
     memcpy(ptr, element, buffer->element_size);
 
     buffer->elements_number++;
@@ -87,16 +95,21 @@ Result_enum buffer_push(Buffer* buffer, void* element, uint8_t max_push_time) {
 }
 
 Result_enum buffer_pop(Buffer* buffer, void* element, uint8_t max_pop_time) {
+    struct timeval now;
+    struct timespec timeout;
+    uint8_t* ptr;
+    
     if(buffer == NULL) return NULL_TARGET_ERROR;
 
     if(element == NULL) return NULL_TARGET_ERROR;
 
-    struct timespec timeout;
-    timeout.tv_sec = max_pop_time;
+    gettimeofday(&now, NULL);
+    timeout.tv_sec = now.tv_sec + max_pop_time;
+    timeout.tv_nsec = now.tv_usec * 1000;
 
     pthread_mutex_lock(&buffer->mutex);
     while (buffer_is_empty(buffer)) {
-        if(pthread_cond_timedwait(&buffer->can_consume, &buffer->mutex, &timeout)!=0){
+        if(pthread_cond_timedwait(&buffer->can_consume, &buffer->mutex, &timeout) != 0){
             pthread_mutex_unlock(&buffer->mutex);
 
             return TIMEOUT_ERROR;

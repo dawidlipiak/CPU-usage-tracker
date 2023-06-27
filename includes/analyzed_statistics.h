@@ -5,9 +5,10 @@
 
 // Analyzed processor statistic object structure
 typedef struct AnalysedProcStats {
-    uint8_t CPUs_number;
-    float total;
-    float* CPUs;
+     float* CPUs;
+  float total;
+  uint8_t CPUs_number;
+  char padding[3];
 } AnalysedProcStats;
 
 #endif

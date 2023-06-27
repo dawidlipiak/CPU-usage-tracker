@@ -18,9 +18,10 @@ typedef struct CpuStatistics {
 
 // Data for processor structure
 typedef struct ProcStatistics {
-    uint8_t CPUs_number;
-    CpuStatistics total;
-    CpuStatistics* CPUs;
+  CpuStatistics total;
+  CpuStatistics* CPUs;
+  uint8_t CPUs_number;
+  char padding[7];
 } ProcStatistics;
 
 #endif 
