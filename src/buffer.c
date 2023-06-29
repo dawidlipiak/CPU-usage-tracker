@@ -116,7 +116,7 @@ Result_enum buffer_pop(Buffer* buffer, void* element, uint8_t max_pop_time) {
         }
     }
 
-    uint8_t * const ptr = &buffer->buffer[buffer->tail * buffer->element_size];
+    ptr = &buffer->buffer[buffer->tail * buffer->element_size];
     memcpy(element, ptr, buffer->element_size);
 
     buffer->elements_number--;

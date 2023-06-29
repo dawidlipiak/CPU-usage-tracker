@@ -38,7 +38,7 @@ static void cleanup(void);
 static void thread_join_create_error(const char* message);
 
 
-int cpu_tracker_run(void) {
+int tracker_run(void) {
   enum { buffer_max_size = 32 };
   ProcStatistics stats;
 
@@ -48,16 +48,16 @@ int cpu_tracker_run(void) {
 
   pthread_t watchdogs[3];
 
-  reader = reader_new("/proc/stat");
-  analyzer = analyzer_new();
-  printer = printer_new("#");
-  logger = logger_new("logs.txt");
+  reader = reader_create("/proc/stat");
+  analyzer = analyzer_create();
+  printer = printer_create("#");
+  logger = logger_create("logs.txt");
 
-  reader_read_latest_statistics(reader, &stats);
+  reader_get_latest_stats(reader, &stats);
   CPUs_number = stats.CPUs_number;
 
-  reader_analyzer_buffer = buffer_new(sizeof(ProcStatistics) + sizeof(CpuStatistics) * CPUs_number, buffer_max_size);
-  analyzer_printer_buffer = buffer_new(sizeof(AnalysedProcStats) + sizeof(float) * CPUs_number, buffer_max_size);
+  reader_analyzer_buffer = buffer_create(sizeof(ProcStatistics) + sizeof(CpuStatistics) * CPUs_number, buffer_max_size);
+  analyzer_printer_buffer = buffer_create(sizeof(AnalysedProcStats) + sizeof(float) * CPUs_number, buffer_max_size);
   free(stats.CPUs);
 
   if(signal(SIGTERM, signal_handler)== SIG_ERR) return EXIT_FAILURE;
@@ -123,7 +123,7 @@ static void* reader_thread_function(void* args) {
     struct timespec sleepTime;
 
     while(termination_flag == 0) {   
-        reader_read_latest_statistics(reader, &stats);
+        reader_get_latest_stats(reader, &stats);
         if(buffer_push(reader_analyzer_buffer, &stats, 2) != SUCCESS) {
             free(stats.CPUs);
             logger_log(logger, Error, "Cannot push data to reader-analyzer buffer.");
@@ -162,7 +162,7 @@ static void* analyzer_thread_function(void* args) {
 
         logger_log(logger, Info, "Data poped from reader-analyzer buffer.");
         
-        if(analyzer_analyse_statistics(analyzer, stats, &analysed_stats) == SUCCESS) {
+        if(analyzer_analyse_stats(analyzer, stats, &analysed_stats) == SUCCESS) {
           if(buffer_push(analyzer_printer_buffer, &analysed_stats, 2) != SUCCESS) {
             logger_log(logger, Error, "Cannot push data to analyzer-printer buffer.");
 

@@ -15,7 +15,7 @@ typedef struct Reader Reader;
  * 
  * return: pointer to created Reader 
 */ 
-Reader* reader_create(size_t read_interval);
+Reader* reader_create(char* file_path);
 
 
 
@@ -26,7 +26,7 @@ Reader* reader_create(size_t read_interval);
  * 
  * return: operation result
 */
-Result_enum reader_read_latest_statistics(Reader* reader, ProcStatistics* stats);
+Result_enum reader_get_latest_stats(Reader* reader, ProcStatistics* stats);
 
 
 

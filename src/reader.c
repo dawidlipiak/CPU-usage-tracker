@@ -31,7 +31,7 @@ Reader* reader_create(char* file_path) {
   return reader;
 }
 
-Result_enum reader_read_latest_stats(Reader* const reader, ProcStatistics* stats) {
+Result_enum reader_get_latest_stats(Reader* const reader, ProcStatistics* stats) {
   bool data_read_successfully = false;
   size_t buffer_size = 1024;
   size_t chars_read = 0;
