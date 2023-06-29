@@ -40,17 +40,17 @@ void printer_print_proc_usage(Printer* printer, AnalysedProcStats* stats) {
     if(stats == NULL) return;
 
     printf("\033[H\033[J");     
-    printf("-------  CPU Tracker  -------\n");
-
-    printf("total usage: ");
-    visualise_cpu_usage(stats->total, printer->usage_bar_char);
-    printf("\n");
+    printf("---------  CPU Tracker  ---------\n");
     
     for(uint8_t i = 0; i < stats->CPUs_number; i++) {
         printf("cpu %d: ", i);
         visualise_cpu_usage(stats->CPUs[i], printer->usage_bar_char);
         printf("\n");
     }
+    
+    printf("total usage: ");
+    visualise_cpu_usage(stats->total, printer->usage_bar_char);
+    printf("\n");
 
     printf("\n");
 }
